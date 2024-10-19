@@ -4,25 +4,164 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <style>
+      .dropdown {
+        position: relative;
+        width: 200px;
+        margin: 20px 0;
+      }
+
+      .dropdown-box {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #fff;
+      }
+
+      .arrow {
+        width: 0;
+        height: 0;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 6px solid #000;
+      }
+
+      .dropdown-content {
+        display: none;
+        position: absolute;
+        top: 110%;
+        left: 0;
+        width: 100%;
+        background-color: #f9f9f9;
+        box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+      }
+
+      .dropdown.active .dropdown-content {
+        display: block;
+      }
+
+      .dropdown-content label {
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      .selected-items {
+        font-size: 14px;
+        color: #333;
+      }
+
+      select {
+        display: none;
+      }
+    </style>
   </head>
   <body>
-    <h5>hello</h5>
-    <div>
-        <select key="1" checkbox>
-          <option>Option 1</option>
-          <option>Option 2</option>
-          <option>Option 3</option>
-        </select>
-        <select key="2">
-          <option>Option 1</option>
-          <option>Option 2</option>
-          <option>Option 3</option>
-        </select>
-        <select key="3">
-          <option>Option 1</option>
-          <option>Option 2</option>
-          <option>Option 3</option>
-        </select>
-    </div>
+    <form id="form">
+      <!-- 既存の select 要素 -->
+      <select id="mySelect1" multiple>
+        <option value="1">Option 1</option>
+        <option value="2">Option 2</option>
+        <option value="3">Option 3</option>
+      </select>
+
+      <select id="mySelect2" multiple>
+        <option value="1">Option A</option>
+        <option value="2">Option B</option>
+        <option value="3">Option C</option>
+      </select>
+
+      <!-- ドロップダウンがここに生成されます -->
+      <button type="submit">Submit</button>
+    </form>
+    <script type="module">
+      // 全てのselect要素を取得
+      let selectedItems = [];
+      document.querySelectorAll("select").forEach((selectElement) => {
+        selectedItems[selectElement.id] = [];
+        // console.log("selectElement",selectElement);
+        createCustomDropDown(selectElement);
+      });
+
+      // 取得したselect要素をcreateCustomDropDownとして関数を呼び出して加工する
+      // ドロップダウンのコンテナを作成
+
+      function createCustomDropDown(selectElement) {
+        const dropdown = document.createElement("div");
+        dropdown.classList.add("dropdown");
+
+        // 選択内容を表示するボックス
+        const dropdownBox = document.createElement("div");
+        dropdownBox.classList.add("dropdown-box");
+        dropdownBox.innerHTML =
+          '<span class="selected-items">Please select</span><div class="arrow"></div>';
+        // dropboxの中にdropdownboxを挿入
+        dropdown.appendChild(dropdownBox);
+
+        // ドロップダウンメニューのコンテンツ（チェックボックス）を作成
+        const dropdownContent = document.createElement("div");
+        dropdownContent.classList.add("dropdown-content");
+
+        //元のselect要素のopitionをcustom
+
+        Array.from(selectElement.options).forEach((option) => {
+        //   console.dir(selectElement);
+        //   console.dir(selectElement.options);
+          const label = document.createElement("label");
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.value = option.value;
+
+          label.appendChild(checkbox);
+          //   console.log("option.textContent: ", option.textContent);
+          label.appendChild(document.createTextNode(option.textContent));
+
+          //これらをdropdownContentに挿入
+          dropdownContent.appendChild(label);
+
+          // チェックボックスと <select> 要素の選択状態を同期
+          checkbox.addEventListener("change", function () {
+            option.selected = this.checked;
+            updateSelectedItems(dropdownBox, selectElement);
+          });
+        });
+
+        dropdown.appendChild(dropdownContent);
+        selectElement.insertAdjacentElement("afterend", dropdown);
+        selectElement.style.display = "none";
+
+        // ドロップダウンの開閉
+        dropdownBox.addEventListener("click", function () {
+          dropdown.classList.toggle("active");
+        });
+        // 選択されたアイテムをボックスに表示
+
+        function updateSelectedItems(dropdownBox, selectElement) {
+          const selected = Array.from(selectElement.selectedOptions).map(
+            (option) => option.textContent
+          );
+          console.log(selected);
+
+          dropdownBox.querySelector(".selected-items").textContent =
+            selected.length > 0 ? selected.join(", ") : "Please Select";
+          selectedItems[selectElement.id] = selected;
+        }
+      }
+
+      const form = document.getElementById("form");
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const allSelectedItems = Object.values(selectedItems).flat();
+        alert("Submit Successful with " + allSelectedItems.join(", "));
+        // console.log(selectedItems);
+      });
+    </script>
   </body>
 </html>
